@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Finance data lives in the browser (localStorage) via `src/lib/finance/store.ts` (useSyncExternalStore); the app shell renders only after hydration, so pages may assume state exists. Why: single-user personal tracker with no backend yet.
+- Account balances are derived: `initialBalance` + non-seed transactions. Seed history (`seed: true`, `date: null`) counts in totals/charts but never changes balances. Why: the user's starting balances already include that history.
+- Pure money logic stays in `src/lib/finance/logic.ts` with tests in `logic.test.ts`; components only call it.

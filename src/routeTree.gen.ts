@@ -10,33 +10,79 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssinaturasRouteImport } from './routes/assinaturas'
+import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as CarteiraRouteImport } from './routes/carteira'
+import { Route as TransacoesRouteImport } from './routes/transacoes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssinaturasRoute = AssinaturasRouteImport.update({
+  id: '/assinaturas',
+  path: '/assinaturas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarteiraRoute = CarteiraRouteImport.update({
+  id: '/carteira',
+  path: '/carteira',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransacoesRoute = TransacoesRouteImport.update({
+  id: '/transacoes',
+  path: '/transacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assinaturas': typeof AssinaturasRoute
+  '/calendario': typeof CalendarioRoute
+  '/carteira': typeof CarteiraRoute
+  '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assinaturas': typeof AssinaturasRoute
+  '/calendario': typeof CalendarioRoute
+  '/carteira': typeof CarteiraRoute
+  '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assinaturas': typeof AssinaturasRoute
+  '/calendario': typeof CalendarioRoute
+  '/carteira': typeof CarteiraRoute
+  '/transacoes': typeof TransacoesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/assinaturas' | '/calendario' | '/carteira' | '/transacoes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/assinaturas' | '/calendario' | '/carteira' | '/transacoes'
+  id:
+    | '__root__'
+    | '/'
+    | '/assinaturas'
+    | '/calendario'
+    | '/carteira'
+    | '/transacoes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssinaturasRoute: typeof AssinaturasRoute
+  CalendarioRoute: typeof CalendarioRoute
+  CarteiraRoute: typeof CarteiraRoute
+  TransacoesRoute: typeof TransacoesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +94,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assinaturas': {
+      id: '/assinaturas'
+      path: '/assinaturas'
+      fullPath: '/assinaturas'
+      preLoaderRoute: typeof AssinaturasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carteira': {
+      id: '/carteira'
+      path: '/carteira'
+      fullPath: '/carteira'
+      preLoaderRoute: typeof CarteiraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transacoes': {
+      id: '/transacoes'
+      path: '/transacoes'
+      fullPath: '/transacoes'
+      preLoaderRoute: typeof TransacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssinaturasRoute: AssinaturasRoute,
+  CalendarioRoute: CalendarioRoute,
+  CarteiraRoute: CarteiraRoute,
+  TransacoesRoute: TransacoesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
