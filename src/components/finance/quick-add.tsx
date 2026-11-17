@@ -13,12 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/finance/categories";
 import { financeActions } from "@/lib/finance/store";
-import { toISODate } from "@/lib/finance/logic";
-import type { TxType } from "@/lib/finance/types";
-import { parseAmount } from "@/lib/format";
+import { toISODate, validateTransaction } from "@/lib/finance/logic";
+import type { Transaction, TransactionInput, TxType } from "@/lib/finance/types";
+import { formatNumber, parseAmount } from "@/lib/format";
 import { categoryIcon, useFinance } from "./ui-bits";
 
-interface OpenOpts { type?: TxType; date?: string }
+/** Pass `tx` to edit an existing transaction instead of creating a new one. */
+interface OpenOpts { type?: TxType; date?: string; tx?: Transaction }
 const QuickAddCtx = createContext<{ open: (o?: OpenOpts) => void } | null>(null);
 
 export function useQuickAdd() {
@@ -61,54 +62,72 @@ function QuickAddDialog({ open, opts, onOpenChange }: { open: boolean; opts: Ope
   const [toAccountId, setToAccountId] = useState<string>(NONE);
   const [date, setDate] = useState<string>(toISODate(new Date()));
 
-  const movable = state.accounts.filter((a) => a.kind !== "investimento" || type === "transfer");
-  const defaultAccount = state.accounts.find((a) => a.kind === "corrente")?.id ?? NONE;
+  const editing = opts.tx;
+  const isSeed = !!editing?.seed;
+  const movable = state.accounts.filter((a) => a.kind !== "investimento" || type === "transfer" || a.id === editing?.accountId);
+  const defaultAccount = state.accounts.find((a) => a.id === "nubank")?.id ?? state.accounts.find((a) => a.kind === "corrente")?.id ?? NONE;
 
   useEffect(() => {
-    if (open) {
-      const t = opts.type ?? "expense";
-      setType(t);
-      setAmount("");
-      setDescription("");
-      setCategory(t === "income" ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
-      setAccountId(defaultAccount);
-      setToAccountId(NONE);
-      setDate(opts.date ?? toISODate(new Date()));
+    if (!open) return;
+    if (editing) {
+      setType(editing.type);
+      setAmount(formatNumber(editing.amount));
+      setDescription(editing.description);
+      setCategory(editing.category);
+      setAccountId(editing.accountId ?? NONE);
+      setToAccountId(editing.toAccountId ?? NONE);
+      setDate(editing.date ?? toISODate(new Date()));
+      return;
     }
+    const t = opts.type ?? "expense";
+    setType(t);
+    setAmount("");
+    setDescription("");
+    setCategory(t === "income" ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
+    setAccountId(defaultAccount);
+    setToAccountId(NONE);
+    setDate(opts.date ?? toISODate(new Date()));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, opts]);
 
-  const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const baseCategories: readonly string[] = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  // Keep a custom/old category of the edited transaction selectable.
+  const categories = editing && type === editing.type && !baseCategories.includes(editing.category) && editing.category !== "Transferência"
+    ? [editing.category, ...baseCategories]
+    : baseCategories;
 
   function changeType(t: TxType) {
     setType(t);
     if (t === "income") setCategory(INCOME_CATEGORIES[0]);
     if (t === "expense") setCategory(EXPENSE_CATEGORIES[0]);
+    if (t !== "transfer" && accountId !== NONE && state.accounts.find((a) => a.id === accountId)?.kind === "investimento" && accountId !== editing?.accountId) {
+      setAccountId(defaultAccount);
+    }
   }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const value = parseAmount(amount);
-    if (!Number.isFinite(value) || value <= 0) {
-      toast.error("Informe um valor maior que zero.");
-      return;
-    }
-    if (type === "transfer") {
-      if (accountId === NONE || toAccountId === NONE || accountId === toAccountId) {
-        toast.error("Escolha duas contas diferentes para transferir.");
-        return;
-      }
-    }
-    financeActions.addTransaction({
+    const input: TransactionInput = {
       type,
-      amount: value,
+      amount: parseAmount(amount),
       description: description.trim() || (type === "transfer" ? "Transferência" : category),
       category: type === "transfer" ? "Transferência" : category,
       accountId: accountId === NONE ? null : accountId,
-      toAccountId: type === "transfer" ? toAccountId : null,
+      toAccountId: type === "transfer" && toAccountId !== NONE ? toAccountId : null,
       date,
-    });
-    toast.success(type === "income" ? "Ganho registrado" : type === "expense" ? "Gasto registrado" : "Transferência registrada");
+    };
+    const error = validateTransaction(input, state, { seed: isSeed });
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    if (editing) {
+      financeActions.updateTransaction(editing.id, input);
+      toast.success("Lançamento atualizado");
+    } else {
+      financeActions.addTransaction(input);
+      toast.success(type === "income" ? "Ganho registrado" : type === "expense" ? "Gasto registrado" : "Transferência registrada");
+    }
     onOpenChange(false);
   }
 
@@ -116,8 +135,14 @@ function QuickAddDialog({ open, opts, onOpenChange }: { open: boolean; opts: Ope
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass max-h-[92dvh] overflow-y-auto rounded-3xl border-border bg-popover sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-display">Novo lançamento</DialogTitle>
-          <DialogDescription>Registre em segundos — o saldo da conta se atualiza sozinho.</DialogDescription>
+          <DialogTitle className="font-display">{editing ? "Editar lançamento" : "Novo lançamento"}</DialogTitle>
+          <DialogDescription>
+            {isSeed
+              ? "Histórico inicial: já está refletido nos saldos de abertura, então a edição muda só os totais e gráficos."
+              : editing
+                ? "Ajuste o que precisar — saldos e patrimônio se recalculam na hora."
+                : "Registre em segundos — o saldo da conta se atualiza sozinho."}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1">
@@ -187,7 +212,8 @@ function QuickAddDialog({ open, opts, onOpenChange }: { open: boolean; opts: Ope
               <Select value={accountId} onValueChange={setAccountId}>
                 <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {type !== "transfer" && <SelectItem value={NONE}>Não especificado</SelectItem>}
+                  {isSeed && type !== "transfer" && <SelectItem value={NONE}>Não especificado</SelectItem>}
+                  {!isSeed && accountId === NONE && <SelectItem value={NONE} disabled>Escolha a conta</SelectItem>}
                   {movable.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -204,6 +230,7 @@ function QuickAddDialog({ open, opts, onOpenChange }: { open: boolean; opts: Ope
                 </Select>
               </div>
             )}
+            {!isSeed && (
             <div className={cn("min-w-0 space-y-1.5", type === "transfer" && "col-span-2")}>
               <Label>Data</Label>
               <Popover>
@@ -225,10 +252,11 @@ function QuickAddDialog({ open, opts, onOpenChange }: { open: boolean; opts: Ope
                 </PopoverContent>
               </Popover>
             </div>
+            )}
           </div>
 
           <Button type="submit" className="bg-kaiser h-12 w-full rounded-2xl text-base font-semibold shadow-glow">
-            Salvar lançamento
+            {editing ? "Salvar alterações" : "Salvar lançamento"}
           </Button>
         </form>
       </DialogContent>

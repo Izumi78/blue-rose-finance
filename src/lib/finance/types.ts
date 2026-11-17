@@ -48,4 +48,13 @@ export interface FinanceState {
   accounts: Account[];
   transactions: Transaction[];
   subscriptions: Subscription[];
+  /**
+   * Opening reconciliation adjustment (R$, may be negative): the gap between the
+   * sum of the opening account balances and the real opening net worth. Counts in
+   * the total net worth but belongs to no account until the user allocates it.
+   */
+  openingAdjustment: number;
 }
+
+/** Fields of a transaction the user may edit. */
+export type TransactionInput = Pick<Transaction, "type" | "amount" | "description" | "category" | "accountId" | "toAccountId" | "date">;

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, CreditCard, History, LayoutDashboard, Plus, Repeat } from "lucide-react";
 import { useFinanceStore } from "@/lib/finance/store";
 import { cn } from "@/lib/utils";
@@ -55,6 +55,7 @@ export function Avatar({ className }: { className?: string }) {
 
 function ShellInner({ children }: { children: ReactNode }) {
   const quick = useQuickAdd();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="min-h-dvh">
       {/* Desktop header */}
@@ -67,7 +68,7 @@ function ShellInner({ children }: { children: ReactNode }) {
                 key={n.to}
                 to={n.to}
                 activeOptions={{ exact: n.to === "/" }}
-                className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[status=active]:bg-foreground data-[status=active]:text-background"
+                className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all duration-300 hover:bg-accent/40 hover:text-foreground data-[status=active]:bg-foreground data-[status=active]:text-background"
               >
                 {n.label}
               </Link>
@@ -76,7 +77,7 @@ function ShellInner({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => quick.open()}
-              className="bg-kaiser flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.03]"
+              className="bg-kaiser flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow press"
             >
               <Plus className="h-4 w-4" /> Lançar
             </button>
@@ -97,7 +98,9 @@ function ShellInner({ children }: { children: ReactNode }) {
         <img src={logo} alt="Blaue Rose" width={36} height={36} className="h-9 w-9 drop-shadow-[0_0_14px_var(--primary)]" />
       </header>
 
-      <main className="mx-auto max-w-[1400px] px-4 pb-32 pt-3 md:px-6 md:pb-12 md:pt-6">{children}</main>
+      <main className="mx-auto max-w-[1400px] px-4 pb-32 pt-3 md:px-6 md:pb-12 md:pt-6">
+        <div key={pathname} className="animate-page">{children}</div>
+      </main>
 
       {/* Mobile bottom bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden">
@@ -109,7 +112,7 @@ function ShellInner({ children }: { children: ReactNode }) {
                 to={n.to}
                 aria-label={n.label}
                 activeOptions={{ exact: n.to === "/" }}
-                className="group grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition-colors data-[status=active]:bg-primary/20 data-[status=active]:text-neon"
+                className="group grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition-all duration-300 data-[status=active]:bg-primary/20 data-[status=active]:shadow-[0_0_18px_-4px_var(--neon)] data-[status=active]:text-neon"
               >
                 <n.icon className="h-5 w-5" />
               </Link>
@@ -118,7 +121,7 @@ function ShellInner({ children }: { children: ReactNode }) {
           <button
             onClick={() => quick.open()}
             aria-label="Novo lançamento"
-            className="bg-kaiser grid h-16 w-16 shrink-0 place-items-center rounded-full text-primary-foreground shadow-glow"
+            className="bg-kaiser press grid h-16 w-16 shrink-0 place-items-center rounded-full text-primary-foreground shadow-glow"
           >
             <Plus className="h-7 w-7" />
           </button>

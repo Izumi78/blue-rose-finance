@@ -56,7 +56,7 @@ export const CHART_COLORS = [
 
 export function Panel({ title, action, children, className }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={cn("glass rounded-3xl p-5", className)}>
+    <section className={cn("glass interactive-panel rounded-3xl p-5", className)}>
       {(title || action) && (
         <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <h2 className="truncate text-base font-medium">{title}</h2>

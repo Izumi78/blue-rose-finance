@@ -33,3 +33,7 @@ use the editor.
 - Finance data lives in the browser (localStorage) via `src/lib/finance/store.ts` (useSyncExternalStore); the app shell renders only after hydration, so pages may assume state exists. Why: single-user personal tracker with no backend yet.
 - Account balances are derived: `initialBalance` + non-seed transactions. Seed history (`seed: true`, `date: null`) counts in totals/charts but never changes balances. Why: the user's starting balances already include that history.
 - Pure money logic stays in `src/lib/finance/logic.ts` with tests in `logic.test.ts`; components only call it.
+- Stored state is upgraded only through `migrateState` in `logic.ts`, which adds missing fields once and never drops saved accounts/transactions. Why: user data lives only in their browser.
+- Net worth = account balances + `openingAdjustment` (an explicit, unallocated reconciliation line); allocating it moves it into one account's `initialBalance` and leaves the total unchanged. Why: never guess which account the opening gap belongs to.
+- "Dinheiro livre" is a single account (`FREE_MONEY_ACCOUNT_ID`), never the sum of current accounts. Why: user's definition.
+- Transactions are edited in place via `editTransaction` (keeps id/createdAt; seed stays seed with date null) and validated by `validateTransaction`; new income/expense always needs an account. Why: unlinked movements would not touch balances.

@@ -1,5 +1,11 @@
 import type { Account, FinanceState, Transaction } from "./types";
 
+/**
+ * Opening reconciliation: the real opening net worth is lower than the sum of the
+ * opening account balances. The gap is kept as an explicit, unallocated adjustment.
+ */
+export const OPENING_ADJUSTMENT = -306.36;
+
 export const SEED_ACCOUNTS: Account[] = [
   { id: "btg", name: "BTG Banking", kind: "corrente", initialBalance: 900.46, note: "Venda do celular: 300,46 + Depósito: 600,00", theme: "abyss" },
   { id: "nubank", name: "Nubank", kind: "corrente", initialBalance: 416.9, note: "Saldo conferido diretamente no aplicativo", theme: "kaiser" },
@@ -54,5 +60,6 @@ export function createSeedState(startDate: string): FinanceState {
     accounts: SEED_ACCOUNTS.map((a) => ({ ...a })),
     transactions,
     subscriptions: [],
+    openingAdjustment: OPENING_ADJUSTMENT,
   };
 }

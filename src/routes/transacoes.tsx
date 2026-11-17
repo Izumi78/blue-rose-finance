@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Search, Trash2 } from "lucide-react";
+import { Pencil, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { financeActions } from "@/lib/finance/store";
@@ -11,6 +11,7 @@ import type { Transaction, TxType } from "@/lib/finance/types";
 import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { TxRow, useFinance } from "@/components/finance/ui-bits";
+import { useQuickAdd } from "@/components/finance/quick-add";
 
 export const Route = createFileRoute("/transacoes")({
   head: () => ({
@@ -35,6 +36,7 @@ const FILTERS: { value: TxType | "all"; label: string }[] = [
 
 function TransactionsPage() {
   const state = useFinance();
+  const quick = useQuickAdd();
   const [filter, setFilter] = useState<TxType | "all">("all");
   const [q, setQ] = useState("");
 
@@ -94,17 +96,30 @@ function TransactionsPage() {
                   tx={tx}
                   state={state}
                   trailing={
+                    <span className="flex items-center">
                     <button
-                      aria-label="Excluir"
+                      type="button"
+                      aria-label={`Editar "${tx.description}"`}
+                      title="Editar"
+                      onClick={() => quick.open({ tx })}
+                      className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/20 hover:text-neon"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Excluir "${tx.description}"`}
+                      title="Excluir"
                       onClick={() => {
                         if (!confirm(`Excluir "${tx.description}"?`)) return;
                         financeActions.deleteTransaction(tx.id);
                         toast.success("Lançamento excluído");
                       }}
-                      className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
+                      className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/20 hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
+                    </span>
                   }
                 />
               ))}

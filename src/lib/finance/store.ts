@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { createSeedState } from "./seed";
-import { toISODate } from "./logic";
-import type { Account, FinanceState, Subscription, Transaction } from "./types";
+import { allocateAdjustment, editTransaction, migrateState, toISODate } from "./logic";
+import type { Account, FinanceState, Subscription, Transaction, TransactionInput } from "./types";
 
 const STORAGE_KEY = "blaue-rose:finance:v1";
 
@@ -18,8 +18,12 @@ function load(): FinanceState {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as FinanceState;
-      if (parsed && parsed.version === 1) return parsed;
+      const result = migrateState(JSON.parse(raw));
+      if (result) {
+        // Saved data is never discarded: only missing fields are added, then persisted once.
+        if (result.migrated) persist(result.state);
+        return result.state;
+      }
     }
   } catch {
     /* corrupted storage: start fresh */
@@ -75,6 +79,14 @@ export const financeActions = {
   addTransaction(tx: Omit<Transaction, "id" | "createdAt">) {
     update((s) => ({ ...s, transactions: [{ ...tx, id: uid(), createdAt: Date.now() }, ...s.transactions] }));
   },
+  /** Edits only the editable fields; id and createdAt are preserved. */
+  updateTransaction(id: string, input: TransactionInput) {
+    update((s) => editTransaction(s, id, input));
+  },
+  /** Moves the opening reconciliation adjustment into an account (net worth unchanged). */
+  allocateAdjustment(accountId: string) {
+    update((s) => allocateAdjustment(s, accountId));
+  },
   deleteTransaction(id: string) {
     update((s) => ({ ...s, transactions: s.transactions.filter((t) => t.id !== id) }));
   },
@@ -118,6 +130,7 @@ export const financeActions = {
       };
     });
   },
+  /** Restores the initial data, including the opening reconciliation adjustment. */
   resetAll() {
     state = createSeedState(toISODate(new Date()));
     persist(state);

@@ -3,12 +3,13 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight, Crown, Minus, Plus, Repeat, ShieldCheck, Target, TrendingUp, Waves } from "lucide-react";
 import heroRose from "@/assets/blue-rose-hero.jpg";
-import { accountBalance, accountsByKind, diagnosis, monthlySubscriptions, nextChargeDate, position, toISODate, totals } from "@/lib/finance/logic";
+import { accountBalance, accountsByKind, diagnosis, freeMoney, monthlySubscriptions, nextChargeDate, position, toISODate, totals } from "@/lib/finance/logic";
 import { formatBRL, formatPct } from "@/lib/format";
 import { Panel, TxRow, useFinance } from "@/components/finance/ui-bits";
 import { useQuickAdd } from "@/components/finance/quick-add";
 import { CardStack } from "@/components/finance/card-stack";
 import { ExpenseSplit, RevenueFlow } from "@/components/finance/charts";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,6 +31,7 @@ function Dashboard() {
   const today = toISODate(new Date());
   const pos = position(state);
   const tot = totals(state);
+  const free = freeMoney(state);
   const recent = [...state.transactions].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "") || b.createdAt - a.createdAt).slice(0, 6);
 
   return (
@@ -43,25 +45,26 @@ function Dashboard() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-12">
-        <div className="flex flex-col gap-5 lg:col-span-8">
+        <div className="stagger flex flex-col gap-5 lg:col-span-8">
           {/* Hero + income/expense */}
           <div className="order-1 grid gap-5 md:grid-cols-3">
-            <section className="relative overflow-hidden rounded-3xl border border-primary/30 bg-background shadow-glow md:col-span-2">
+            <section className="hero-sheen interactive-panel relative overflow-hidden rounded-3xl border border-primary/30 bg-background shadow-glow md:col-span-2">
               <img src={heroRose} alt="" width={1536} height={1024} className="absolute inset-0 h-full w-full object-cover object-right opacity-90" />
               <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
               <div className="relative flex h-full flex-col p-6">
                 <p className="text-sm text-muted-foreground">Patrimônio total</p>
                 <p className="tabular mt-1 font-display text-4xl font-semibold tracking-tight sm:text-5xl">{formatBRL(pos.total)}</p>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                  <Chip label="Livre" value={pos.corrente} />
+                  {free ? <Chip label="Livre · Nubank" value={free.balance} highlight /> : <span className="glass-strong rounded-full px-3 py-1.5 text-warning">Nubank não encontrado</span>}
                   <Chip label="Investido" value={pos.investimento} />
                   <Chip label="Reservado" value={pos.reservado} />
                   <Chip label="A receber" value={pos.receber} />
+                  {pos.ajuste !== 0 && <Chip label="Ajuste de conciliação" value={pos.ajuste} />}
                 </div>
                 <div className="mt-6 hidden flex-wrap gap-2 md:flex">
-                  <button onClick={() => quick.open({ type: "expense" })} className="rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background">Novo gasto</button>
-                  <button onClick={() => quick.open({ type: "income" })} className="glass-strong rounded-full px-5 py-2.5 text-sm font-semibold">Novo ganho</button>
-                  <button onClick={() => quick.open({ type: "transfer" })} aria-label="Transferir" className="glass-strong grid h-10 w-10 place-items-center rounded-full"><ArrowLeftRight className="h-4 w-4" /></button>
+                  <button onClick={() => quick.open({ type: "expense" })} className="press rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:shadow-glow">Novo gasto</button>
+                  <button onClick={() => quick.open({ type: "income" })} className="glass-strong press rounded-full px-5 py-2.5 text-sm font-semibold hover:border-primary/40">Novo ganho</button>
+                  <button onClick={() => quick.open({ type: "transfer" })} aria-label="Transferir" className="glass-strong press grid h-10 w-10 place-items-center rounded-full hover:border-primary/40"><ArrowLeftRight className="h-4 w-4" /></button>
                 </div>
               </div>
             </section>
@@ -102,7 +105,7 @@ function Dashboard() {
           </Panel>
         </div>
 
-        <aside className="flex flex-col gap-5 lg:col-span-4">
+        <aside className="stagger flex flex-col gap-5 lg:col-span-4">
           <Panel><CardStack /></Panel>
           <SubscriptionsPanel today={today} />
           <InvestmentsPanel />
@@ -112,9 +115,9 @@ function Dashboard() {
   );
 }
 
-function Chip({ label, value }: { label: string; value: number }) {
+function Chip({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
   return (
-    <span className="glass-strong tabular rounded-full px-3 py-1.5">
+    <span className={cn("glass-strong tabular rounded-full px-3 py-1.5", highlight && "border-neon/40 shadow-glow")}>
       <span className="text-muted-foreground">{label} </span>
       <span className="font-semibold">{formatBRL(value)}</span>
     </span>
@@ -124,7 +127,7 @@ function Chip({ label, value }: { label: string; value: number }) {
 function StatCard({ label, value, sign, hint, tone }: { label: string; value: number; sign: string; hint: string; tone: "up" | "down" }) {
   const Icon = tone === "up" ? ArrowDownLeft : ArrowUpRight;
   return (
-    <div className="glass flex flex-col justify-between rounded-3xl p-5">
+    <div className="glass interactive-panel flex flex-col justify-between rounded-3xl p-5">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{label}</p>
         <span className={tone === "up" ? "grid h-8 w-8 place-items-center rounded-full bg-success/15 text-success" : "grid h-8 w-8 place-items-center rounded-full bg-royal/20 text-royal"}>
@@ -141,8 +144,8 @@ function StatCard({ label, value, sign, hint, tone }: { label: string; value: nu
 
 function QuickTile({ icon: Icon, label, onClick }: { icon: typeof Plus; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex flex-col items-center gap-2">
-      <span className="glass-strong grid aspect-square w-full place-items-center rounded-2xl"><Icon className="h-5 w-5" /></span>
+    <button onClick={onClick} className="press flex flex-col items-center gap-2 rounded-2xl">
+      <span className="glass-strong grid aspect-square w-full place-items-center rounded-2xl text-neon"><Icon className="h-5 w-5" /></span>
       <span className="text-xs text-muted-foreground">{label}</span>
     </button>
   );
