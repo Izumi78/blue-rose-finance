@@ -37,9 +37,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 function Brand() {
   return (
     <Link to="/" className="flex min-w-0 items-center gap-2.5">
-      <img src={logo} alt="Blaue Rose" width={36} height={36} className="h-9 w-9 shrink-0 drop-shadow-[0_0_14px_var(--primary)]" />
+      <img src={logo} alt="Blue Rose" width={36} height={36} className="h-9 w-9 shrink-0 drop-shadow-[0_0_14px_var(--primary)]" />
       <span className="truncate font-display text-lg font-semibold tracking-tight">
-        blaue<span className="text-kaiser">rose</span>
+        Blue <span className="text-kaiser">Rose</span>
       </span>
     </Link>
   );
@@ -95,7 +95,7 @@ function ShellInner({ children }: { children: ReactNode }) {
             <p className="truncate font-display text-base font-semibold">Davi</p>
           </div>
         </div>
-        <img src={logo} alt="Blaue Rose" width={36} height={36} className="h-9 w-9 drop-shadow-[0_0_14px_var(--primary)]" />
+        <img src={logo} alt="Blue Rose" width={36} height={36} className="h-9 w-9 drop-shadow-[0_0_14px_var(--primary)]" />
       </header>
 
       <main className="mx-auto max-w-[1400px] px-4 pb-32 pt-3 md:px-6 md:pb-12 md:pt-6">
