@@ -30,7 +30,7 @@ function ShellInner({ children }: { children: ReactNode }) {
         </Link>
         <p className="mt-9 px-3 text-[10px] font-semibold uppercase tracking-[.16em] opacity-45">Seu espaço</p>
         <nav className="mt-2 flex flex-col gap-1">
-          {NAV.map((n) => <Link key={n.to} to={n.to} activeOptions={{ exact: n.to === "/" }} className="sidebar-link flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors data-[status=active]:active-sidebar"><n.icon className="h-[17px] w-[17px]" />{n.label}</Link>)}
+          {NAV.map((n) => <Link key={n.to} to={n.to} activeOptions={{ exact: n.to === "/" }} className="sidebar-link flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors data-[status=active]:bg-[#c7c9b7] data-[status=active]:text-[#26382c] data-[status=active]:font-semibold"><n.icon className="h-[17px] w-[17px]" />{n.label}</Link>)}
         </nav>
         <div className="mt-auto rounded-2xl border border-white/10 bg-white/[.05] p-3.5">
           <p className="text-xs font-medium">Um passo de cada vez.</p><p className="mt-1 text-[11px] leading-relaxed opacity-55">Clareza financeira começa com pequenas escolhas.</p>
@@ -46,7 +46,7 @@ function ShellInner({ children }: { children: ReactNode }) {
           <div key={pathname} className="animate-page">{children}</div>
         </main>
         <div className="finance-mobile-nav fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:hidden"><nav className="mx-auto flex max-w-lg items-center justify-around rounded-2xl px-1.5 py-2">
-          {NAV.map((n) => <Link key={n.to} to={n.to} aria-label={n.label} activeOptions={{ exact: n.to === "/" }} className="grid h-11 w-11 place-items-center rounded-xl transition-colors data-[status=active]:active-sidebar"><n.icon className="h-[18px] w-[18px]" /></Link>)}
+          {NAV.map((n) => <Link key={n.to} to={n.to} aria-label={n.label} activeOptions={{ exact: n.to === "/" }} className="grid h-11 w-11 place-items-center rounded-xl transition-colors data-[status=active]:bg-[#c7c9b7] data-[status=active]:text-[#26382c] data-[status=active]:font-semibold"><n.icon className="h-[18px] w-[18px]" /></Link>)}
         </nav></div>
       </div>
     </div>
