@@ -14,7 +14,7 @@ const NAV = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const state = useFinanceStore();
-  if (!state) return <div className="grid min-h-dvh place-items-center"><div className="text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-forest text-cream"><Sparkles /></div><p className="mt-3 text-xs tracking-[.22em] text-muted-foreground">FINANCIAL RESET</p></div>;
+  if (!state) return <div className="grid min-h-dvh place-items-center"><div className="text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl brand-mark"><Sparkles /></div><p className="mt-3 text-xs tracking-[.22em] text-muted-foreground">FINANCIAL RESET</p></div>;
   return <QuickAddProvider><ShellInner>{children}</ShellInner></QuickAddProvider>;
 }
 
