@@ -10,11 +10,12 @@ import { useQuickAdd } from "@/components/finance/quick-add";
 import { CardStack } from "@/components/finance/card-stack";
 import { ExpenseSplit, RevenueFlow } from "@/components/finance/charts";
 import { cn } from "@/lib/utils";
+import { FinancialAiPanel } from "@/components/finance/financial-ai-panel";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Meu painel — Blaue Rose" },
+      { title: "Visão geral — Blaue Rose" },
       { name: "description", content: "Patrimônio, cartões, fluxo de receitas e despesas do Davi em um só painel." },
       { property: "og:title", content: "Meu painel — Blaue Rose" },
       { property: "og:description", content: "Patrimônio, cartões, fluxo de receitas e despesas do Davi em um só painel." },
@@ -36,21 +37,22 @@ function Dashboard() {
 
   return (
     <div className="space-y-5">
+      <FinancialAiPanel />
       <div className="hidden items-end justify-between md:flex">
         <div>
           <p className="text-sm first-letter:uppercase text-muted-foreground">{format(parseISO(today), "EEEE, dd 'de' MMMM", { locale: ptBR })}</p>
           <h1 className="mt-1 text-4xl font-medium">Meu painel</h1>
         </div>
-        <p className="flex items-center gap-2 text-sm text-muted-foreground"><Crown className="h-4 w-4 text-royal" /> Controle como um imperador.</p>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground"><Crown className="h-4 w-4 text-royal" /> Seu progresso começa com clareza.</p>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-12">
         <div className="stagger flex flex-col gap-5 lg:col-span-8">
           {/* Hero + income/expense */}
           <div className="order-1 grid gap-5 md:grid-cols-3">
-            <section className="hero-sheen interactive-panel relative overflow-hidden rounded-3xl border border-primary/30 bg-background shadow-glow md:col-span-2">
-              <img src={heroRose} alt="" width={1536} height={1024} className="absolute inset-0 h-full w-full object-cover object-right opacity-90" />
-              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+            <section className="hero-sheen interactive-panel relative overflow-hidden rounded-3xl border border-border bg-card shadow-card md:col-span-2">
+              
+              
               <div className="relative flex h-full flex-col p-6">
                 <p className="text-sm text-muted-foreground">Patrimônio total</p>
                 <p className="tabular mt-1 font-display text-4xl font-semibold tracking-tight sm:text-5xl">{formatBRL(pos.total)}</p>
