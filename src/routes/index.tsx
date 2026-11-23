@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight, Crown, Minus, Plus, Repeat, ShieldCheck, Target, TrendingUp, Waves } from "lucide-react";
-import heroRose from "@/assets/blue-rose-hero.jpg";
 import { accountBalance, accountsByKind, diagnosis, freeMoney, monthlySubscriptions, nextChargeDate, position, toISODate, totals } from "@/lib/finance/logic";
 import { formatBRL, formatPct } from "@/lib/format";
 import { Panel, TxRow, useFinance } from "@/components/finance/ui-bits";
