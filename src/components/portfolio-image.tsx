@@ -11,15 +11,34 @@ type PortfolioImageProps = {
   priority?: boolean;
 };
 
+// Public portfolio assets live in a dedicated bucket, separate from the
+// private media bucket used by Rosa Azul Caderno.
+const PORTFOLIO_STORAGE_URL =
+  "https://utmcnicgabcmkfmsxzop.supabase.co/storage/v1/object/public/portfolio-media/";
+
+function resolveImageSource(value: string): string {
+  const source = value.trim();
+
+  // Keep compatibility with the existing /images/* references in the page,
+  // but serve those files from Supabase Storage so they work on every device.
+  if (source.startsWith("/images/")) {
+    const fileName = source.slice("/images/".length);
+    const safePath = fileName.split("/").map(encodeURIComponent).join("/");
+    return `${PORTFOLIO_STORAGE_URL}${safePath}`;
+  }
+
+  return source;
+}
+
 function isAllowedImageSource(value: string): boolean {
   const source = value.trim();
-  return source.startsWith("/") || source.startsWith("https://") || source.startsWith("blob:");
+  return source.startsWith("https://") || source.startsWith("blob:");
 }
 
 /**
- * Image renderer for the portfolio. A missing, invalid or failed image is
- * contained locally and replaced with a designed placeholder; it never
- * throws and cannot take down the page.
+ * Portfolio image renderer. It resolves local portfolio asset names to the
+ * public Supabase bucket, lazy-loads gallery images, and contains failures
+ * inside a designed placeholder so a missing asset never breaks the page.
  */
 export function PortfolioImage({
   src,
@@ -31,7 +50,9 @@ export function PortfolioImage({
   priority = false,
 }: PortfolioImageProps) {
   const [failed, setFailed] = useState(false);
-  const safeSrc = typeof src === "string" && isAllowedImageSource(src) ? src.trim() : "";
+  const resolvedSrc =
+    typeof src === "string" && src.trim() ? resolveImageSource(src) : "";
+  const safeSrc = resolvedSrc && isAllowedImageSource(resolvedSrc) ? resolvedSrc : "";
 
   useEffect(() => {
     setFailed(false);
