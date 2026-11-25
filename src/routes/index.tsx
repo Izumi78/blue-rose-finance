@@ -1,80 +1,247 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowUpRight, Brush, ChartNoAxesCombined, Cross, Mail, Menu, MousePointer2, Palette, PenTool, Phone, Sparkles, X } from "lucide-react";
-import { useState } from "react";
-import { PortfolioImage } from "@/components/portfolio-image";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight, Crown, Minus, Plus, Repeat, ShieldCheck, Target, TrendingUp, Waves } from "lucide-react";
+import { accountBalance, accountsByKind, diagnosis, freeMoney, monthlySubscriptions, nextChargeDate, position, toISODate, totals } from "@/lib/finance/logic";
+import { formatBRL, formatPct } from "@/lib/format";
+import { Panel, TxRow, useFinance } from "@/components/finance/ui-bits";
+import { useQuickAdd } from "@/components/finance/quick-add";
+import { CardStack } from "@/components/finance/card-stack";
+import { ExpenseSplit, RevenueFlow } from "@/components/finance/charts";
+import { cn } from "@/lib/utils";
+import { FinancialAiPanel } from "@/components/finance/financial-ai-panel";
 
-export const Route = createFileRoute("/")({ component: Portfolio });
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Visão geral — Blaue Rose" },
+      { name: "description", content: "Patrimônio, cartões, fluxo de receitas e despesas do Davi em um só painel." },
+      { property: "og:title", content: "Meu painel — Blaue Rose" },
+      { property: "og:description", content: "Patrimônio, cartões, fluxo de receitas e despesas do Davi em um só painel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Dashboard,
+});
 
-const works = [
-  { title: "Painel criativo", type: "Arte digital • Composição", note: "Composição de referências, personagens e identidade visual.", image: "/images/gallery-01.webp" },
-  { title: "Dean Winchester", type: "Ilustração digital • Personagem", note: "Estudo de personagem, composição e identidade visual.", image: "/images/gallery-02.webp" },
-  { title: "Personagem urbano", type: "Ilustração digital • Personagem", note: "Personagem em cenário urbano, explorando pose e ambiente.", image: "/images/gallery-03.webp" },
-  { title: "Personagem mascarado", type: "Ilustração digital • Original", note: "Contraste de cores e expressão em uma composição intensa.", image: "/images/gallery-04.webp" },
-  { title: "Retrato em tons quentes", type: "Ilustração digital • Retrato", note: "Estudo de luz, cor e expressão em um retrato ilustrado.", image: "/images/gallery-05.webp" },
-  { title: "Personagem em vermelho", type: "Ilustração digital • Anime", note: "Movimento, expressão e paleta vibrante.", image: "/images/gallery-06.webp" },
-  { title: "Retrato ruivo", type: "Ilustração digital • Personagem", note: "Estudo de rosto, cabelo e acabamento ilustrado.", image: "/images/gallery-07.webp" },
-  { title: "Personagem fantástico", type: "Ilustração digital • Fantasia", note: "Personagem com acessórios e ambientação narrativa.", image: "/images/gallery-08.webp" },
-];
+function Dashboard() {
+  const state = useFinance();
+  const quick = useQuickAdd();
+  const today = toISODate(new Date());
+  const pos = position(state);
+  const tot = totals(state);
+  const free = freeMoney(state);
+  const recent = [...state.transactions].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "") || b.createdAt - a.createdAt).slice(0, 6);
 
-function Portfolio() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const closeMenu = () => setMenuOpen(false);
   return (
-    <main className="portfolio">
-      <div className="ambient ambient-one" /><div className="ambient ambient-two" />
-      <header className="topbar">
-        <a className="brand" href="#inicio" onClick={closeMenu}><span className="brand-mark">DF</span><span>DAVI FRANÇA<small>CREATIVE PORTFOLIO</small></span></a>
-        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menu">{menuOpen ? <X /> : <Menu />}</button>
-        <nav className={menuOpen ? "nav nav-open" : "nav"}>
-          <a href="#sobre" onClick={closeMenu}>Sobre</a><a href="#atuacao" onClick={closeMenu}>O que faço</a><a href="#trabalhos" onClick={closeMenu}>Portfólio</a><a href="#contato" className="nav-contact" onClick={closeMenu}>Vamos conversar <ArrowUpRight size={15}/></a>
-        </nav>
-      </header>
-
-      <section className="hero" id="inicio">
-        <div className="hero-copy">
-          <div className="eyebrow"><span className="status-dot"/> DISPONÍVEL PARA NOVOS PROJETOS</div>
-          <p className="hero-kicker">ESTRATÉGIA • DESIGN • ARTE DIGITAL</p>
-          <h1>Ideias que<br/><span>ganham forma.</span></h1>
-          <p className="hero-intro">Sou <strong>Davi França Oliveira</strong> — gestor de tráfego pago, designer e ilustrador digital. Uno criatividade e estratégia para transformar ideias em experiências visuais e resultados.</p>
-          <div className="hero-actions"><a className="button button-primary" href="#trabalhos">Explorar trabalhos <ArrowUpRight size={17}/></a><a className="text-link" href="#sobre">Conheça minha história <ArrowDown size={15}/></a></div>
-          <div className="hero-meta"><span>20 ANOS</span><i/> <span>DESIGN • CEUMA</span><i/> <span>BRASIL</span></div>
+    <div className="space-y-5">
+      <FinancialAiPanel />
+      <div className="hidden items-end justify-between md:flex">
+        <div>
+          <p className="text-sm first-letter:uppercase text-muted-foreground">{format(parseISO(today), "EEEE, dd 'de' MMMM", { locale: ptBR })}</p>
+          <h1 className="mt-1 text-4xl font-medium">Meu painel</h1>
         </div>
-        <div className="hero-art">
-          <div className="orbit orbit-a"/><div className="orbit orbit-b"/>
-          <div className="hero-frame"><div className="frame-top"><span>ARTIST / DESIGNER</span><span>001—DF</span></div><div className="portrait-placeholder"><PortfolioImage src="/images/davi-franca.webp" alt="Retrato de Davi França Oliveira" fallbackTitle="DAVI FRANÇA" fallbackCaption="Retrato em preparação" variant="portrait" priority/><span className="portrait-label">YOUR VISION<br/>MY CREATION</span></div><div className="frame-bottom"><span>CRIATIVIDADE EM MOVIMENTO</span><Sparkles size={17}/></div></div>
-          <div className="floating-tag tag-blue"><ChartNoAxesCombined size={17}/> PERFORMANCE</div><div className="floating-tag tag-purple"><PenTool size={17}/> DIGITAL ART</div>
-          <div className="hero-stamp">DAVI<br/><b>FRANÇA</b><small>CREATIVE MINDSET</small></div>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground"><Crown className="h-4 w-4 text-royal" /> Seu progresso começa com clareza.</p>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-12">
+        <div className="stagger flex flex-col gap-5 lg:col-span-8">
+          {/* Hero + income/expense */}
+          <div className="order-1 grid gap-5 md:grid-cols-3">
+            <section className="hero-sheen interactive-panel relative overflow-hidden rounded-3xl border border-border bg-card shadow-card md:col-span-2">
+              
+              
+              <div className="relative flex h-full flex-col p-6">
+                <p className="text-sm text-muted-foreground">Patrimônio total</p>
+                <p className="tabular mt-1 font-display text-4xl font-semibold tracking-tight sm:text-5xl">{formatBRL(pos.total)}</p>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                  {free ? <Chip label="Livre · Nubank" value={free.balance} highlight /> : <span className="glass-strong rounded-full px-3 py-1.5 text-warning">Nubank não encontrado</span>}
+                  <Chip label="Investido" value={pos.investimento} />
+                  <Chip label="Reservado" value={pos.reservado} />
+                  <Chip label="A receber" value={pos.receber} />
+                  {pos.ajuste !== 0 && <Chip label="Ajuste de conciliação" value={pos.ajuste} />}
+                </div>
+                <div className="mt-6 hidden flex-wrap gap-2 md:flex">
+                  <button onClick={() => quick.open({ type: "expense" })} className="press rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:shadow-glow">Novo gasto</button>
+                  <button onClick={() => quick.open({ type: "income" })} className="glass-strong press rounded-full px-5 py-2.5 text-sm font-semibold hover:border-primary/40">Novo ganho</button>
+                  <button onClick={() => quick.open({ type: "transfer" })} aria-label="Transferir" className="glass-strong press grid h-10 w-10 place-items-center rounded-full hover:border-primary/40"><ArrowLeftRight className="h-4 w-4" /></button>
+                </div>
+              </div>
+            </section>
+            <div className="grid grid-cols-2 gap-5 md:grid-cols-1">
+              <StatCard label="Entradas" value={tot.income} sign="+" hint="Total registrado" tone="up" />
+              <StatCard label="Saídas" value={tot.expense} sign="−" hint="Total registrado" tone="down" />
+            </div>
+          </div>
+
+          {/* Mobile quick actions */}
+          <div className="order-2 grid grid-cols-4 gap-3 md:hidden">
+            <QuickTile icon={Minus} label="Gasto" onClick={() => quick.open({ type: "expense" })} />
+            <QuickTile icon={Plus} label="Ganho" onClick={() => quick.open({ type: "income" })} />
+            <QuickTile icon={ArrowLeftRight} label="Transferir" onClick={() => quick.open({ type: "transfer" })} />
+            <Link to="/assinaturas" className="flex flex-col items-center gap-2">
+              <span className="glass-strong grid aspect-square w-full place-items-center rounded-2xl"><Repeat className="h-5 w-5" /></span>
+              <span className="text-xs text-muted-foreground">Assinaturas</span>
+            </Link>
+          </div>
+
+          <div className="order-4 grid gap-5 md:grid-cols-2">
+            <RevenueFlow today={today} />
+            <ExpenseSplit />
+          </div>
+
+          <div className="order-4">
+            <Diagnosis />
+          </div>
+
+          <Panel
+            className="order-3 md:order-5"
+            title={<>Últimos lançamentos <sup className="text-xs text-muted-foreground">{state.transactions.length}</sup></>}
+            action={<Link to="/transacoes" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">Ver tudo <ChevronRight className="h-4 w-4" /></Link>}
+          >
+            <div className="space-y-2">
+              {recent.map((tx) => <TxRow key={tx.id} tx={tx} state={state} />)}
+            </div>
+          </Panel>
         </div>
-        <a className="scroll-cue" href="#sobre"><span>SCROLL TO DISCOVER</span><div><ArrowDown size={15}/></div></a>
-      </section>
 
-      <section className="intro-strip"><span>CRIATIVIDADE COM PROPÓSITO</span><div/><span>ESTRATÉGIA COM INTENÇÃO</span><div/><span>FÉ COMO FUNDAMENTO</span></section>
+        <aside className="stagger flex flex-col gap-5 lg:col-span-4">
+          <Panel><CardStack /></Panel>
+          <SubscriptionsPanel today={today} />
+          <InvestmentsPanel />
+        </aside>
+      </div>
+    </div>
+  );
+}
 
-      <section className="about section-wrap" id="sobre">
-        <div className="section-index">01 / QUEM SOU</div>
-        <div className="about-grid"><div><p className="eyebrow">MUITO PRAZER, DAVI.</p><h2>Entre números,<br/><em>formas e fé.</em></h2></div><div className="about-text"><p>Sou um jovem cristão, estudante de Design no CEUMA e apaixonado por criar. Minha jornada conecta o universo analítico do marketing digital com a liberdade criativa do design e da ilustração.</p><p>Acredito que um bom trabalho precisa de intenção: entender pessoas, comunicar com clareza e construir algo que tenha identidade. Gosto de aprender, experimentar e transformar referências em projetos com personalidade.</p><div className="faith-note"><Cross size={18}/><span>Minha fé em Cristo é parte de quem sou e do propósito que busco levar para tudo o que faço.</span></div></div></div>
-      </section>
+function Chip({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <span className={cn("glass-strong tabular rounded-full px-3 py-1.5", highlight && "border-neon/40 shadow-glow")}>
+      <span className="text-muted-foreground">{label} </span>
+      <span className="font-semibold">{formatBRL(value)}</span>
+    </span>
+  );
+}
 
-      <section className="services section-wrap" id="atuacao">
-        <div className="section-index">02 / MINHA ATUAÇÃO</div><div className="section-heading"><div><p className="eyebrow">CRIATIVIDADE + PERFORMANCE</p><h2>O que posso <em>construir.</em></h2></div><p>Do planejamento à execução, trabalho para que cada ideia tenha uma presença forte e uma comunicação consistente.</p></div>
-        <div className="service-grid">
-          <article className="service-card"><div className="service-icon"><ChartNoAxesCombined/></div><span className="service-number">01</span><h3>Gestão de tráfego pago</h3><p>Estratégia de campanhas, análise de métricas e otimização para conectar marcas às pessoas certas.</p><div className="service-tags"><span>Meta Ads</span><span>Performance</span><span>Estratégia</span></div></article>
-          <article className="service-card"><div className="service-icon"><Palette/></div><span className="service-number">02</span><h3>Design gráfico</h3><p>Comunicação visual com conceito, hierarquia e personalidade para fortalecer marcas e ideias.</p><div className="service-tags"><span>Identidade</span><span>Composição</span><span>Visual</span></div></article>
-          <article className="service-card"><div className="service-icon"><Brush/></div><span className="service-number">03</span><h3>Ilustração digital</h3><p>Criação de personagens, retratos e artes digitais com traço autoral e atenção aos detalhes.</p><div className="service-tags"><span>Personagens</span><span>Retratos</span><span>Arte digital</span></div></article>
+function StatCard({ label, value, sign, hint, tone }: { label: string; value: number; sign: string; hint: string; tone: "up" | "down" }) {
+  const Icon = tone === "up" ? ArrowDownLeft : ArrowUpRight;
+  return (
+    <div className="glass interactive-panel flex flex-col justify-between rounded-3xl p-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <span className={tone === "up" ? "grid h-8 w-8 place-items-center rounded-full bg-success/15 text-success" : "grid h-8 w-8 place-items-center rounded-full bg-royal/20 text-royal"}>
+          <Icon className="h-4 w-4" />
+        </span>
+      </div>
+      <div className="mt-4">
+        <p className="tabular truncate font-display text-lg font-semibold sm:text-2xl">{sign}{formatBRL(value)}</p>
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      </div>
+    </div>
+  );
+}
+
+function QuickTile({ icon: Icon, label, onClick }: { icon: typeof Plus; label: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="press flex flex-col items-center gap-2 rounded-2xl">
+      <span className="glass-strong grid aspect-square w-full place-items-center rounded-2xl text-neon"><Icon className="h-5 w-5" /></span>
+      <span className="text-xs text-muted-foreground">{label}</span>
+    </button>
+  );
+}
+
+function Diagnosis() {
+  const state = useFinance();
+  const d = diagnosis(state);
+  return (
+    <Panel title={<span className="flex items-center gap-2"><Target className="h-4 w-4 text-neon" /> Diagnóstico de caixa</span>}>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="glass-strong rounded-2xl p-4">
+          <p className="text-xs text-muted-foreground">Maior despesa</p>
+          <p className="mt-1 truncate font-semibold">{d.biggest?.description ?? "—"}</p>
+          {d.biggest && <p className="tabular mt-1 text-sm text-neon">{formatPct(d.biggest.pct)} dos gastos</p>}
         </div>
-      </section>
+        <div className="glass-strong rounded-2xl p-4">
+          <p className="text-xs text-muted-foreground">Gastos recorrentes</p>
+          <p className="mt-1 truncate font-semibold">{d.recurring?.category ?? "—"}</p>
+          {d.recurring && <p className="tabular mt-1 text-sm text-warning">{formatBRL(d.recurring.amount)} pulverizados</p>}
+        </div>
+        <div className="glass-strong rounded-2xl p-4">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5 text-success" /> Proteção de caixa</p>
+          {d.reserved.length ? (
+            d.reserved.map((r) => (
+              <div key={r.name}>
+                <p className="mt-1 truncate font-semibold">{r.name}</p>
+                <p className="tabular mt-1 text-sm text-success">{formatBRL(r.balance)} isolado</p>
+              </div>
+            ))
+          ) : (
+            <p className="mt-1 text-sm text-muted-foreground">Nenhuma reserva separada.</p>
+          )}
+        </div>
+      </div>
+    </Panel>
+  );
+}
 
-      <section className="works section-wrap" id="trabalhos">
-        <div className="section-index">03 / GALERIA CRIATIVA</div><div className="section-heading"><div><p className="eyebrow">ESTUDOS, IDEIAS E CRIAÇÕES</p><h2>Feito com <em>identidade.</em></h2></div><p>Uma seleção de ilustrações e experimentações visuais. Cada peça representa uma etapa do meu processo criativo.</p></div>
-        <div className="work-grid">{works.map((work, index) => <article className="work-card" key={work.title}><div className="work-visual"><PortfolioImage src={work.image} alt={work.title} fallbackTitle={work.title} fallbackCaption="Arquivo de imagem indisponível" variant="artwork"/><span className="work-art-label">ARTWORK / {String(index+1).padStart(2,"0")}</span><span className="work-open" aria-hidden="true"><ArrowUpRight/></span></div><div className="work-info"><div><span>{work.type}</span><h3>{work.title}</h3><p>{work.note}</p></div><span className="work-index">{String(index+1).padStart(2,"0")}</span></div></article>)}</div>
-        <p className="gallery-note"><Sparkles size={15}/> Ilustrações autorais de Davi França Oliveira.</p>
-      </section>
+function SubscriptionsPanel({ today }: { today: string }) {
+  const state = useFinance();
+  const subs = state.subscriptions.filter((s) => s.active).sort((a, b) => nextChargeDate(a, today).localeCompare(nextChargeDate(b, today)));
+  return (
+    <Panel
+      title={<>Assinaturas <sup className="text-xs text-muted-foreground">{subs.length}</sup></>}
+      action={<Link to="/assinaturas" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">Gerenciar <ChevronRight className="h-4 w-4" /></Link>}
+    >
+      {subs.length === 0 ? (
+        <Link to="/assinaturas" className="flex items-center gap-3 rounded-2xl border border-dashed p-4 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground">
+          <Crown className="h-5 w-5 text-royal" /> Cadastre Gemini Pro, streamings e ferramentas.
+        </Link>
+      ) : (
+        <div className="space-y-2">
+          {subs.slice(0, 4).map((s) => (
+            <div key={s.id} className="glass-strong grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl px-3 py-2.5">
+              <span className="bg-kaiser grid h-9 w-9 place-items-center rounded-full font-display text-sm font-semibold text-primary-foreground">{s.name.charAt(0)}</span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold">{s.name}</span>
+                <span className="block text-xs text-muted-foreground">Próx. {format(parseISO(nextChargeDate(s, today)), "dd MMM", { locale: ptBR })}</span>
+              </span>
+              <span className="tabular text-sm font-bold">{formatBRL(s.amount)}</span>
+            </div>
+          ))}
+          <p className="tabular pt-1 text-right text-xs text-muted-foreground">Total mensal: <span className="font-semibold text-foreground">{formatBRL(monthlySubscriptions(state))}</span></p>
+        </div>
+      )}
+    </Panel>
+  );
+}
 
-      <section className="quote-band"><span className="quote-mark">“</span><p>Design é mais do que deixar bonito.<br/><em>É dar forma ao que precisa ser comunicado.</em></p><span className="quote-credit">DAVI FRANÇA — VISÃO CRIATIVA</span></section>
-
-      <section className="contact section-wrap" id="contato"><div className="section-index">04 / CONTATO</div><div className="contact-layout"><div><p className="eyebrow">TEM UMA IDEIA?</p><h2>Vamos criar algo<br/><em>memorável.</em></h2><p className="contact-intro">Se você procura criatividade, estratégia ou uma nova perspectiva para seu projeto, será um prazer conversar.</p></div><div className="contact-card"><span className="contact-card-label">FALE COMIGO</span><a href="https://wa.me/5598984375774" target="_blank" rel="noreferrer"><Phone/> <span><small>WHATSAPP</small>+55 98 98437-5774</span><ArrowUpRight className="contact-arrow"/></a><a href="mailto:do39331@gmail.com"><Mail/> <span><small>E-MAIL</small>do39331@gmail.com</span><ArrowUpRight className="contact-arrow"/></a><div className="contact-social"><span>São Luís, Maranhão • Brasil</span><span>Fé, criatividade e propósito.</span></div></div></div></section>
-
-      <footer className="footer"><a className="brand" href="#inicio"><span className="brand-mark">DF</span><span>DAVI FRANÇA<small>CREATIVE PORTFOLIO</small></span></a><span>© {new Date().getFullYear()} DAVI FRANÇA OLIVEIRA</span><a href="#inicio">VOLTAR AO TOPO ↑</a></footer>
-    </main>
+function InvestmentsPanel() {
+  const state = useFinance();
+  const inv = accountsByKind(state, "investimento");
+  const rec = accountsByKind(state, "receber");
+  const total = inv.reduce((s, a) => s + accountBalance(state, a.id), 0);
+  return (
+    <Panel
+      title={<span className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-neon" /> Investimentos</span>}
+      action={<span className="tabular text-sm font-semibold">{formatBRL(total)}</span>}
+    >
+      <div className="space-y-2">
+        {inv.map((a) => (
+          <div key={a.id} className="flex items-center justify-between gap-3 text-sm">
+            <span className="truncate text-muted-foreground">{a.name}</span>
+            <span className="tabular font-semibold">{formatBRL(accountBalance(state, a.id))}</span>
+          </div>
+        ))}
+        {rec.length > 0 && <div className="my-3 h-px bg-border" />}
+        {rec.map((a) => (
+          <div key={a.id} className="flex items-center justify-between gap-3 text-sm">
+            <span className="flex min-w-0 items-center gap-2 truncate text-muted-foreground"><Waves className="h-3.5 w-3.5 shrink-0 text-royal" />{a.name}</span>
+            <span className="tabular font-semibold">{formatBRL(accountBalance(state, a.id))}</span>
+          </div>
+        ))}
+      </div>
+    </Panel>
   );
 }
