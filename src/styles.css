@@ -17,3 +17,20 @@
 .work-art-label{z-index:1;padding:7px 9px;border:1px solid #ffffff30;border-radius:3px;background:#080a12b8;backdrop-filter:blur(8px)}
 .work-open{z-index:2;background:#080a12b8;backdrop-filter:blur(8px)}
 @media(max-width:760px){.work-grid{grid-template-columns:1fr}.work-visual{height:min(115vw,520px)}}
+
+
+/* Resilient portfolio media: failed/missing files render a designed fallback. */
+.portrait-placeholder > .portfolio-image{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.portrait-placeholder > .portfolio-image > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 25%;filter:saturate(.92)}
+.work-visual > .portfolio-image{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.work-visual > .portfolio-image > img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#080a12;transition:transform .5s ease}
+.work-card:hover .work-visual > .portfolio-image > img{transform:scale(1.035)}
+.portfolio-image{display:block;min-width:0;min-height:0;overflow:hidden;background:#0b1022}
+.portfolio-image-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;overflow:hidden;background:radial-gradient(ellipse at 50% 42%,#253b80 0,#111a3b 42%,#090d1b 100%)}
+.portfolio-image-fallback-glow{position:absolute;width:58%;aspect-ratio:1;border:1px solid #9bb0ff55;border-radius:50%;box-shadow:0 0 0 22px #829dff0b,0 0 0 48px #829dff08,0 0 65px #537aff30}
+.portfolio-image-monogram{z-index:1;font:800 clamp(76px,12vw,130px)/.9 Manrope,sans-serif;letter-spacing:-.12em;padding-right:.12em;color:#e4eaff;text-shadow:0 0 45px #7da1ff}
+.portfolio-image-fallback-icon{z-index:1;width:42px;height:42px;color:#a9baff}
+.portfolio-image-fallback-title{z-index:1;max-width:90%;font:700 13px Manrope,sans-serif;color:#e5eaff}
+.portfolio-image-fallback-caption{z-index:1;display:flex;align-items:center;gap:7px;font:8px 'DM Mono',monospace;letter-spacing:.5px;color:#aab6d9}
+.portfolio-image--portrait .portfolio-image-fallback{background:radial-gradient(ellipse at 50% 42%,#344b9c 0,#18264f 42%,#090d1b 100%)}
+.portfolio-image--portrait .portfolio-image-fallback-title{font-size:10px;letter-spacing:2px}
