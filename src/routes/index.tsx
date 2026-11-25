@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, ArrowUpRight, Brush, ChartNoAxesCombined, Cross, Mail, Menu, MousePointer2, Palette, PenTool, Phone, Sparkles, X } from "lucide-react";
 import { useState } from "react";
+import { PortfolioImage } from "@/components/portfolio-image";
 
 export const Route = createFileRoute("/")({ component: Portfolio });
 
@@ -40,7 +41,7 @@ function Portfolio() {
         </div>
         <div className="hero-art">
           <div className="orbit orbit-a"/><div className="orbit orbit-b"/>
-          <div className="hero-frame"><div className="frame-top"><span>ARTIST / DESIGNER</span><span>001—DF</span></div><div className="portrait-placeholder"><img src="/images/davi-franca.jpg" alt="Retrato de Davi França Oliveira" fetchPriority="high"/><span className="portrait-label">YOUR VISION<br/>MY CREATION</span></div><div className="frame-bottom"><span>CRIATIVIDADE EM MOVIMENTO</span><Sparkles size={17}/></div></div>
+          <div className="hero-frame"><div className="frame-top"><span>ARTIST / DESIGNER</span><span>001—DF</span></div><div className="portrait-placeholder"><PortfolioImage src="/images/davi-franca.jpg" alt="Retrato de Davi França Oliveira" fallbackTitle="DAVI FRANÇA" fallbackCaption="Retrato em preparação" variant="portrait" priority/><span className="portrait-label">YOUR VISION<br/>MY CREATION</span></div><div className="frame-bottom"><span>CRIATIVIDADE EM MOVIMENTO</span><Sparkles size={17}/></div></div>
           <div className="floating-tag tag-blue"><ChartNoAxesCombined size={17}/> PERFORMANCE</div><div className="floating-tag tag-purple"><PenTool size={17}/> DIGITAL ART</div>
           <div className="hero-stamp">DAVI<br/><b>FRANÇA</b><small>CREATIVE MINDSET</small></div>
         </div>
@@ -65,7 +66,7 @@ function Portfolio() {
 
       <section className="works section-wrap" id="trabalhos">
         <div className="section-index">03 / GALERIA CRIATIVA</div><div className="section-heading"><div><p className="eyebrow">ESTUDOS, IDEIAS E CRIAÇÕES</p><h2>Feito com <em>identidade.</em></h2></div><p>Uma seleção de ilustrações e experimentações visuais. Cada peça representa uma etapa do meu processo criativo.</p></div>
-        <div className="work-grid">{works.map((work, index) => <article className="work-card" key={work.title}><div className="work-visual"><img src={work.image} alt={work.title} loading="lazy"/><span className="work-art-label">ARTWORK / {String(index+1).padStart(2,"0")}</span><a className="work-open" href={work.image} target="_blank" rel="noreferrer" aria-label={"Abrir "+work.title}><ArrowUpRight/></a></div><div className="work-info"><div><span>{work.type}</span><h3>{work.title}</h3><p>{work.note}</p></div><span className="work-index">{String(index+1).padStart(2,"0")}</span></div></article>)}</div>
+        <div className="work-grid">{works.map((work, index) => <article className="work-card" key={work.title}><div className="work-visual"><PortfolioImage src={work.image} alt={work.title} fallbackTitle={work.title} fallbackCaption="Adicione a arte em public/images" variant="artwork"/><span className="work-art-label">ARTWORK / {String(index+1).padStart(2,"0")}</span><span className="work-open" aria-hidden="true"><ArrowUpRight/></span></div><div className="work-info"><div><span>{work.type}</span><h3>{work.title}</h3><p>{work.note}</p></div><span className="work-index">{String(index+1).padStart(2,"0")}</span></div></article>)}</div>
         <p className="gallery-note"><Sparkles size={15}/> Ilustrações autorais de Davi França Oliveira.</p>
       </section>
 
